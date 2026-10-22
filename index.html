@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#006b4f">
+  <title>Consulta de Condición Académica | FI-UAEMéx</title>
+  <style>
+    :root {
+      --verde: #006b4f;
+      --verde-oscuro: #004b38;
+      --fondo: #f5f7f6;
+      --texto: #202a26;
+      --gris: #5d6863;
+      --borde: #d8e0dc;
+      --blanco: #ffffff;
+      --aviso: #fff7e5;
+      --error: #fff0f0;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--texto);
+      background: var(--fondo);
+      line-height: 1.55;
+    }
+    header {
+      background: var(--verde);
+      color: var(--blanco);
+      padding: 26px 18px;
+      text-align: center;
+    }
+    header .institucion {
+      margin: 0 0 6px;
+      font-size: .95rem;
+      letter-spacing: .02em;
+    }
+    header h1 {
+      margin: 0;
+      font-size: clamp(1.45rem, 4vw, 2rem);
+      line-height: 1.2;
+    }
+    header .subtitulo { margin: 9px 0 0; font-size: 1rem; }
+    main {
+      width: min(760px, calc(100% - 28px));
+      margin: 26px auto 40px;
+    }
+    .tarjeta {
+      background: var(--blanco);
+      border: 1px solid var(--borde);
+      border-radius: 14px;
+      padding: clamp(18px, 4vw, 28px);
+      margin-bottom: 18px;
+      box-shadow: 0 3px 12px rgba(0, 0, 0, .035);
+    }
+    h2 { font-size: 1.25rem; margin: 0 0 12px; }
+    p { margin: 9px 0; }
+    .ayuda { color: var(--gris); font-size: .94rem; }
+    label { display: block; font-weight: 700; margin: 18px 0 8px; }
+    input {
+      display: block;
+      width: 100%;
+      min-height: 52px;
+      border: 1px solid #9eaaa4;
+      border-radius: 9px;
+      padding: 12px 14px;
+      font-size: 1.1rem;
+      letter-spacing: .08em;
+    }
+    input:focus { outline: 3px solid #b7e3d3; border-color: var(--verde); }
+    button, .boton {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      min-height: 50px;
+      margin-top: 14px;
+      border: 0;
+      border-radius: 9px;
+      padding: 12px 16px;
+      background: var(--verde);
+      color: var(--blanco);
+      font-size: 1rem;
+      font-weight: 700;
+      text-decoration: none;
+      cursor: pointer;
+      text-align: center;
+    }
+    button:hover, .boton:hover { background: var(--verde-oscuro); }
+    button:disabled { opacity: .65; cursor: wait; }
+    .resultado { display: none; }
+    .insignia {
+      display: inline-block;
+      border-radius: 999px;
+      background: #e7f4ee;
+      color: var(--verde-oscuro);
+      padding: 6px 12px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+    .resultado h2 { font-size: 1.45rem; }
+    .resultado h3 { font-size: 1.05rem; margin: 22px 0 6px; }
+    .resultado ul { padding-left: 22px; }
+    .enlaces { display: grid; grid-template-columns: 1fr; gap: 8px; }
+    .enlaces a {
+      color: var(--verde-oscuro);
+      font-weight: 700;
+      overflow-wrap: anywhere;
+    }
+    .mensaje {
+      display: none;
+      border-radius: 9px;
+      padding: 13px 15px;
+      margin-top: 14px;
+    }
+    .mensaje.error { display: block; background: var(--error); border: 1px solid #e7b6b6; }
+    .mensaje.info { display: block; background: var(--aviso); border: 1px solid #ead49b; }
+    .nota { font-size: .88rem; color: var(--gris); }
+    footer { text-align: center; color: var(--gris); padding: 0 18px 28px; font-size: .86rem; }
+    @media (min-width: 600px) {
+      .enlaces { grid-template-columns: 1fr 1fr; }
+      .enlaces .boton { margin-top: 0; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <p class="institucion">Facultad de Ingeniería · UAEMéx</p>
+    <h1>Consulta de Condición Académica</h1>
+    <p class="subtitulo">Coordinación de Tutoría FI-UAEMéx</p>
+  </header>
+
+  <main>
+    <section class="tarjeta" aria-labelledby="titulo-consulta">
+      <h2 id="titulo-consulta">Consulte su condición académica</h2>
+      <p>Ingrese su número de cuenta de siete dígitos para consultar las indicaciones correspondientes.</p>
+      <form id="formulario">
+        <label for="numeroCuenta">Número de cuenta</label>
+        <input id="numeroCuenta" name="numeroCuenta" type="text"
+          inputmode="numeric" autocomplete="off" maxlength="7"
+          pattern="[0-9]{7}" placeholder="Ejemplo: 1234567"
+          aria-describedby="ayuda-cuenta" required>
+        <p id="ayuda-cuenta" class="ayuda">Escriba únicamente los siete dígitos de su número de cuenta.</p>
+        <button id="botonConsultar" type="submit">Consultar condición</button>
+      </form>
+      <div id="mensaje" class="mensaje" role="status" aria-live="polite"></div>
+      <p class="nota">Si no puede consultar su información, comuníquese con la Coordinación de Tutoría de la Facultad de Ingeniería.</p>
+    </section>
+
+    <section id="resultado" class="tarjeta resultado" aria-live="polite">
+      <span id="insignia" class="insignia"></span>
+      <h2 id="tituloResultado"></h2>
+      <div id="textoResultado"></div>
+
+      <h3>Documento de indicaciones</h3>
+      <p id="textoPdf"></p>
+      <a id="botonPdf" class="boton" href="#" target="_blank" rel="noopener noreferrer">Abrir documento PDF</a>
+
+      <div id="seccionRepositorio">
+        <h3>Repositorio para la captura de carta firmada</h3>
+        <p>Consulte el repositorio correspondiente mediante el siguiente botón.</p>
+        <a class="boton" href="https://tinyurl.com/capturacartafirm" target="_blank" rel="noopener noreferrer">
+          Abrir repositorio de documentos
+        </a>
+      </div>
+
+      <h3>Recursos de apoyo</h3>
+      <div id="recursos" class="enlaces"></div>
+
+      <div id="instruccionAlto" class="mensaje info">
+        <strong>Importante:</strong> descargue e imprima el PDF y entréguelo a la Coordinación de Carrera, conforme al procedimiento indicado.
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    Facultad de Ingeniería · Universidad Autónoma del Estado de México
+  </footer>
+
+  <script>
+    /*
+      CONFIGURACIÓN INICIAL
+      1. Sustituya CSV_URL por la dirección RAW del archivo CSV de GitHub.
+      2. Suba los cuatro PDF al repositorio y ajuste sus rutas en PDF_URLS.
+      3. El CSV debe contener los encabezados: numero_cuenta,condicion
+      4. Valores aceptados en condicion: sin_riesgo, bajo, medio, alto.
+
+      IMPORTANTE: en esta alternativa A el CSV es público. Cualquier persona que
+      encuentre su dirección puede consultar sus registros. La validación del
+      número de cuenta limita el acceso dentro de esta página, pero NO protege
+      el contenido del CSV.
+    */
+    const CSV_URL = "REEMPLAZAR_POR_URL_RAW_DEL_CSV_EN_GITHUB";
+
+    const PDF_URLS = {
+      sin_riesgo: "indicaciones-sin-riesgo.pdf",
+      bajo: "indicaciones-riesgo-bajo.pdf",
+      medio: "indicaciones-riesgo-medio.pdf",
+      alto: "indicaciones-riesgo-alto.pdf"
+    };
+
+    const CATEGORIAS = {
+      sin_riesgo: {
+        nombre: "Sin riesgo académico",
+        insignia: "Trayectoria académica favorable",
+        pdf: "Indicaciones para estudiantes sin riesgo académico",
+        texto: `
+          <p>Su condición académica corresponde a una trayectoria favorable. Este resultado reconoce el esfuerzo, la dedicación y el compromiso que contribuyen a su avance académico.</p>
+          <p>Le invitamos a mantener estos hábitos, continuar en contacto con su tutor o tutora y aprovechar las oportunidades de formación y acompañamiento disponibles.</p>
+        `,
+        recomendaciones: [
+          "Mantenga sus hábitos de estudio y organización del tiempo.",
+          "Continúe dando seguimiento a su trayectoria académica.",
+          "Aproveche las actividades de mentoría, asesoría y acompañamiento que puedan fortalecer su aprendizaje."
+        ],
+        recursos: ["mentorias", "psicologia", "tutor"],
+        repositorio: true
+      },
+      bajo: {
+        nombre: "Riesgo académico bajo",
+        insignia: "Atención preventiva",
+        pdf: "Indicaciones para estudiantes con riesgo académico bajo",
+        texto: `
+          <p>Esta condición señala la conveniencia de atender oportunamente algunos indicadores académicos. La detección temprana permite organizar acciones preventivas y evitar que las dificultades aumenten.</p>
+          <p>Se recomienda revisar las asignaturas que requieren mayor atención, mantener comunicación con su tutor o tutora y solicitar apoyo cuando lo necesite.</p>
+        `,
+        recomendaciones: [
+          "Identifique las asignaturas y actividades que requieren atención prioritaria.",
+          "Organice un plan de estudio realista y dé seguimiento a sus avances.",
+          "Solicite asesoría disciplinar o mentoría antes de que las dificultades se acumulen."
+        ],
+        recursos: ["mentorias", "psicologia", "tutor"],
+        repositorio: true
+      },
+      medio: {
+        nombre: "Riesgo académico medio",
+        insignia: "Atención académica oportuna",
+        pdf: "Indicaciones para estudiantes con riesgo académico medio",
+        texto: `
+          <p>Esta condición indica que es importante atender las dificultades académicas identificadas y fortalecer las estrategias para avanzar en su trayectoria escolar.</p>
+          <p>Se recomienda establecer prioridades, buscar apoyo en las asignaturas que representan mayor dificultad y dar seguimiento a los acuerdos con su tutor o tutora. La atención oportuna puede contribuir a evitar que la situación avance a un nivel de riesgo mayor.</p>
+        `,
+        recomendaciones: [
+          "Determine cuáles asignaturas requieren atención inmediata.",
+          "Acuda a asesorías disciplinares o mentorías y establezca metas de trabajo.",
+          "Revise periódicamente sus avances y mantenga comunicación con su tutor o tutora."
+        ],
+        recursos: ["mentorias", "psicologia", "tutor"],
+        repositorio: true
+      },
+      alto: {
+        nombre: "Riesgo académico alto",
+        insignia: "Requiere atención prioritaria",
+        pdf: "Indicaciones para estudiantes con riesgo académico alto",
+        texto: `
+          <p>Esta condición requiere atención prioritaria y una revisión cuidadosa de las alternativas disponibles para dar continuidad a su trayectoria académica.</p>
+          <p>Le invitamos a revisar las indicaciones del documento, acercarse a su tutor o tutora y solicitar asesoría disciplinar. Si necesita apoyo emocional o personal, también puede consultar los servicios de orientación disponibles.</p>
+        `,
+        recomendaciones: [
+          "Lea cuidadosamente las indicaciones incluidas en el documento PDF.",
+          "Contacte a su tutor o tutora y solicite orientación sobre los pasos siguientes.",
+          "Busque asesoría disciplinar para las asignaturas que requieren atención."
+        ],
+        recursos: ["mentorias", "psicologia", "tutor"],
+        repositorio: false
+      }
+    };
+
+    const ENLACES = {
+      mentorias: {
+        texto: "Mentorías estudiantiles y asesorías disciplinares",
+        url: "https://tinyurl.com/2ukp7n5w"
+      },
+      tutor: {
+        texto: "Información de contacto del tutor o tutora",
+        url: "https://tinyurl.com/3m68a9ur"
+      },
+      psicologia: {
+        texto: "Contacto de apoyo psicológico: Leticia Hernández Vara",
+        url: "mailto:lhernandezvar@uaemex.mx"
+      }
+    };
+
+    const formulario = document.getElementById("formulario");
+    const campoCuenta = document.getElementById("numeroCuenta");
+    const botonConsultar = document.getElementById("botonConsultar");
+    const mensaje = document.getElementById("mensaje");
+    const resultado = document.getElementById("resultado");
+
+    campoCuenta.addEventListener("input", () => {
+      campoCuenta.value = campoCuenta.value.replace(/\D/g, "").slice(0, 7);
+    });
+
+    function mostrarMensaje(texto, tipo = "error") {
+      mensaje.className = "mensaje " + tipo;
+      mensaje.textContent = texto;
+    }
+
+    function ocultarMensaje() {
+      mensaje.className = "mensaje";
+      mensaje.textContent = "";
+    }
+
+    function normalizarCondicion(valor) {
+      const v = (valor || "").trim().toLowerCase()
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .replace(/[\s-]+/g, "_");
+      const equivalencias = {
+        "sin_riesgo": "sin_riesgo",
+        "sin_riesgo_academico": "sin_riesgo",
+        "bajo": "bajo",
+        "riesgo_bajo": "bajo",
+        "riesgo_academico_bajo": "bajo",
+        "medio": "medio",
+        "riesgo_medio": "medio",
+        "riesgo_academico_medio": "medio",
+        "alto": "alto",
+        "riesgo_alto": "alto",
+        "riesgo_academico_alto": "alto"
+      };
+      return equivalencias[v] || "";
+    }
+
+    function analizarCSV(texto) {
+      // CSV simple de dos columnas. Se admite una primera línea de encabezados.
+      const lineas = texto.replace(/^\uFEFF/, "").split(/\r?\n/)
+        .map(linea => linea.trim()).filter(Boolean);
+      if (lineas.length < 2) throw new Error("El archivo CSV está vacío o no contiene registros.");
+
+      const separador = lineas[0].includes(";") && !lineas[0].includes(",") ? ";" : ",";
+      const encabezados = lineas[0].split(separador).map(x => x.trim().toLowerCase());
+      const indiceCuenta = encabezados.indexOf("numero_cuenta");
+      const indiceCondicion = encabezados.indexOf("condicion");
+      if (indiceCuenta === -1 || indiceCondicion === -1) {
+        throw new Error("El CSV debe tener los encabezados numero_cuenta y condicion.");
+      }
+
+      const registros = new Map();
+      for (let i = 1; i < lineas.length; i++) {
+        const columnas = lineas[i].split(separador).map(x => x.trim().replace(/^"|"$/g, ""));
+        const cuenta = columnas[indiceCuenta] || "";
+        const condicion = normalizarCondicion(columnas[indiceCondicion] || "");
+        if (/^\d{7}$/.test(cuenta) && condicion && CATEGORIAS[condicion]) {
+          registros.set(cuenta, condicion);
+        }
+      }
+      return registros;
+    }
+
+    function agregarListaRecomendaciones(contenedor, recomendaciones) {
+      const titulo = document.createElement("h3");
+      titulo.textContent = "Recomendaciones";
+      contenedor.appendChild(titulo);
+      const lista = document.createElement("ul");
+      recomendaciones.forEach(texto => {
+        const li = document.createElement("li");
+        li.textContent = texto;
+        lista.appendChild(li);
+      });
+      contenedor.appendChild(lista);
+    }
+
+    function mostrarResultado(condicion) {
+      const datos = CATEGORIAS[condicion];
+      document.getElementById("insignia").textContent = datos.insignia;
+      document.getElementById("tituloResultado").textContent = datos.nombre;
+      const textoResultado = document.getElementById("textoResultado");
+      textoResultado.innerHTML = datos.texto;
+      agregarListaRecomendaciones(textoResultado, datos.recomendaciones);
+
+      const botonPdf = document.getElementById("botonPdf");
+      botonPdf.href = PDF_URLS[condicion];
+      botonPdf.textContent = "Abrir PDF: " + datos.pdf;
+      document.getElementById("textoPdf").textContent =
+        condicion === "alto"
+          ? "Descargue e imprima este documento y entréguelo a la Coordinación de Carrera."
+          : "Abra el documento con las indicaciones correspondientes a su condición académica.";
+
+      const seccionRepositorio = document.getElementById("seccionRepositorio");
+      seccionRepositorio.style.display = datos.repositorio ? "block" : "none";
+      document.getElementById("instruccionAlto").style.display =
+        condicion === "alto" ? "block" : "none";
+
+      const recursos = document.getElementById("recursos");
+      recursos.replaceChildren();
+      datos.recursos.forEach(clave => {
+        const enlaceDatos = ENLACES[clave];
+        const enlace = document.createElement("a");
+        enlace.className = "boton";
+        enlace.href = enlaceDatos.url;
+        enlace.target = "_blank";
+        enlace.rel = "noopener noreferrer";
+        enlace.textContent = enlaceDatos.texto;
+        recursos.appendChild(enlace);
+      });
+
+      resultado.style.display = "block";
+      resultado.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    formulario.addEventListener("submit", async (evento) => {
+      evento.preventDefault();
+      ocultarMensaje();
+      resultado.style.display = "none";
+
+      const cuenta = campoCuenta.value.trim();
+      if (!/^\d{7}$/.test(cuenta)) {
+        mostrarMensaje("Ingrese un número de cuenta válido de exactamente siete dígitos.");
+        campoCuenta.focus();
+        return;
+      }
+
+      if (!CSV_URL.startsWith("https://")) {
+        mostrarMensaje("La página aún no está configurada: falta colocar la dirección RAW del CSV de GitHub.");
+        return;
+      }
+
+      botonConsultar.disabled = true;
+      botonConsultar.textContent = "Consultando…";
+      try {
+        const respuesta = await fetch(CSV_URL, { cache: "no-store" });
+        if (!respuesta.ok) throw new Error("No fue posible leer el CSV. Revise que la dirección sea correcta y que el archivo sea público.");
+        const textoCSV = await respuesta.text();
+        const registros = analizarCSV(textoCSV);
+
+        if (!registros.has(cuenta)) {
+          mostrarMensaje("No se encontró ese número de cuenta en el registro disponible. Verifique los dígitos o comuníquese con la Coordinación de Tutoría.");
+          return;
+        }
+
+        mostrarResultado(registros.get(cuenta));
+      } catch (error) {
+        mostrarMensaje(error.message || "Ocurrió un problema al consultar la información. Intente nuevamente.");
+      } finally {
+        botonConsultar.disabled = false;
+        botonConsultar.textContent = "Consultar condición";
+      }
+    });
+  </script>
+</body>
+</html>
