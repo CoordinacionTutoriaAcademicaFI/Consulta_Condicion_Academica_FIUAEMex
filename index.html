@@ -124,6 +124,15 @@
     .mensaje.error { display: block; background: var(--error); border: 1px solid #e7b6b6; }
     .mensaje.info { display: block; background: var(--aviso); border: 1px solid #ead49b; }
     .nota { font-size: .88rem; color: var(--gris); }
+    .mentoria {
+      background: #e7f4ee;
+      border: 2px solid var(--verde);
+      border-radius: 12px;
+      padding: 16px 18px;
+      margin: 22px 0 6px;
+    }
+    .mentoria h3 { margin: 0 0 8px; color: var(--verde-oscuro); font-size: 1.15rem; }
+    .mentoria ul { margin: 8px 0; padding-left: 22px; }
     footer { text-align: center; color: var(--gris); padding: 0 18px 28px; font-size: .86rem; }
     @media (min-width: 600px) {
       .enlaces { grid-template-columns: 1fr 1fr; }
@@ -161,16 +170,28 @@
       <h2 id="tituloResultado"></h2>
       <div id="textoResultado"></div>
 
-      <h3>Documento de indicaciones</h3>
-      <p id="textoPdf"></p>
-      <a id="botonPdf" class="boton" href="#" target="_blank" rel="noopener noreferrer">Abrir documento PDF</a>
+      <div id="avisoMentoria" class="mentoria" style="display:none;">
+        <h3>Te invitamos a ser mentor o mentora</h3>
+        <p>Tu trayectoria muestra que cuentas con los conocimientos y las actitudes para apoyar a otros estudiantes. Te invitamos a formar parte del programa de mentores y mentoras, que tiene como beneficios:</p>
+        <ul>
+          <li>Liberar tu servicio social.</li>
+          <li>Recibir un estímulo económico que puede ayudarte con el pago de tu reinscripción.</li>
+        </ul>
+        <p>Si te interesa, envía un mensaje por chat a la Coordinación de Tutoría Académica de la FI-UAEMéx.</p>
+        <a id="botonMentoria" class="boton" href="#" target="_blank" rel="noopener noreferrer">Quiero ser mentor o mentora: enviar mensaje a la Coordinación</a>
+      </div>
 
-      <div id="seccionRepositorio">
-        <h3>Repositorio para la captura de carta firmada</h3>
-        <p>Consulte el repositorio correspondiente mediante el siguiente botón.</p>
-        <a class="boton" href="https://tinyurl.com/capturacartafirm" target="_blank" rel="noopener noreferrer">
-          Abrir repositorio de documentos
-        </a>
+      <div id="seccionPdf">
+        <h3>Documento de indicaciones</h3>
+        <p id="textoPdf"></p>
+        <a id="botonPdf" class="boton" href="#" target="_blank" rel="noopener noreferrer">Abrir documento PDF</a>
+      </div>
+
+      <div id="seccionTutor">
+        <h3>Comunícate con tu tutor o tutora</h3>
+        <p>Al presionar el botón se abre un chat de Microsoft Teams con tu tutor o tutora y un mensaje ya escrito. Solo revísalo y envíalo.</p>
+        <a id="botonTutor" class="boton" href="#" target="_blank" rel="noopener noreferrer">Enviar mensaje a mi tutor o tutora</a>
+        <p id="sinCorreoTutor" class="nota" style="display:none;">No se encontró el correo de tu tutor o tutora. Comunícate con la Coordinación de Tutoría.</p>
       </div>
 
       <h3>Recursos de apoyo</h3>
@@ -190,9 +211,11 @@
     /*
       CONFIGURACIÓN INICIAL
       1. Sustituya CSV_URL por la dirección RAW del archivo CSV de GitHub.
-      2. Suba los cuatro PDF al repositorio y ajuste sus rutas en PDF_URLS.
-      3. El CSV debe contener los encabezados: numero_cuenta,condicion
+      2. Suba el PDF de riesgo alto al repositorio y ajuste su ruta en PDF_URLS.
+      3. El CSV debe contener los encabezados: numero_cuenta,condicion,correo_tutor
       4. Valores aceptados en condicion: sin_riesgo, bajo, medio, alto.
+      5. correo_tutor es el correo institucional del tutor o tutora; con él se abre
+         el chat de Teams. El chat de mentoría usa CORREO_COORDINACION.
 
       IMPORTANTE: en esta alternativa A el CSV es público. Cualquier persona que
       encuentre su dirección puede consultar sus registros. La validación del
@@ -201,12 +224,17 @@
     */
     const CSV_URL = "https://raw.githubusercontent.com/CoordinacionTutoriaAcademicaFI/Consulta_Condicion_Academica_FIUAEMex/refs/heads/main/datos_condicion.csv";
 
+    const CORREO_COORDINACION = "tutoria_fi@uaemex.mx";
+
     const PDF_URLS = {
-      sin_riesgo: "indicaciones-sin-riesgo.pdf",
-      bajo: "indicaciones-riesgo-bajo.pdf",
-      medio: "indicaciones-riesgo-medio.pdf",
       alto: "indicaciones-riesgo-alto.pdf"
     };
+
+    // Texto de cierre común a los mensajes al tutor o tutora.
+    const MENSAJE_TUTOR_BASE = "Hola, ¿qué tal? Soy su tutorado(a). Me comunico porque la Coordinación de Tutoría me indica que le notifique mi condición académica: ";
+    const MENSAJE_TUTOR_CIERRE = " Quedo atento(a) a sus sugerencias y comentarios.";
+    const MENSAJE_TUTOR_ALTO = " Además, estoy en proceso de entregar el documento PDF a la Coordinación de mi Carrera, como me lo indicó la Coordinación de Tutoría, lo cual haré en los siguientes días.";
+    const MENSAJE_MENTORIA = "Hola, ¿qué tal? Soy estudiante de la Facultad de Ingeniería y mi condición académica es sin riesgo. Me interesa formar parte del programa de mentores y mentoras. Quedo atento(a) a la información para participar.";
 
     const CATEGORIAS = {
       sin_riesgo: {
@@ -223,8 +251,7 @@
           "Continúa dando seguimiento a tu trayectoria académica.",
           "Aprovecha las actividades de mentoría, asesoría y acompañamiento que puedan fortalecer tu aprendizaje."
         ],
-        recursos: ["mentorias", "psicologia", "tutor"],
-        repositorio: true
+        recursos: ["mentorias", "psicologia", "tutor"]
       },
       bajo: {
         nombre: "Riesgo académico bajo",
@@ -233,8 +260,7 @@
         indicadores: `<div class="indicadores"><h3>¿Qué indicadores corresponden a esta categoría?</h3><p>Tu condición puede corresponder a cualquiera de estos indicadores:</p><ol><li>Tener de 1 a 5 exámenes reprobados.</li><li>Tener de 1 a 2 periodos de ausencia.</li><li>Tener un rezago por tiempo de permanencia mayor al 10 % y menor o igual al 20 %.</li></ol><p class="nota">El rezago se considera respecto a tu semestre ideal, según tu periodo de ingreso a la Facultad de Ingeniería.</p></div>`,
         texto: `<p>Esta condición señala que conviene atender oportunamente algunos aspectos de tu trayectoria. Identificarlos a tiempo te permite organizar acciones preventivas y evitar que las dificultades aumenten.</p><p>Puedes avanzar paso a paso: identifica qué necesitas reforzar y busca acompañamiento cuando lo requieras.</p>`,
         recomendaciones: ["Identifica las asignaturas y actividades que requieren mayor atención.", "Organiza un plan de estudio realista y revisa tus avances.", "Solicita asesoría disciplinar o mentoría antes de que las dificultades se acumulen."],
-        recursos: ["mentorias", "psicologia", "tutor"],
-        repositorio: true
+        recursos: ["mentorias", "psicologia", "tutor"]
       },
       medio: {
         nombre: "Riesgo académico medio",
@@ -243,8 +269,7 @@
         indicadores: `<div class="indicadores"><h3>¿Qué indicadores corresponden a esta categoría?</h3><p>Tu condición puede corresponder a cualquiera de estos indicadores:</p><ol><li>Tener de 6 a 10 exámenes reprobados.</li><li>Tener de 3 a 4 periodos de ausencia.</li><li>Tener un rezago por tiempo de permanencia mayor al 20 % y menor o igual al 40 %.</li></ol><p class="nota">El rezago se considera respecto a tu semestre ideal, según tu periodo de ingreso a la Facultad de Ingeniería.</p></div>`,
         texto: `<p>Esta condición indica que es importante atender las dificultades identificadas y fortalecer las estrategias que te permitan avanzar en tu trayectoria escolar.</p><p>No tienes que resolverlo todo de una vez. Puedes establecer prioridades, buscar apoyo en las asignaturas que te resultan más difíciles y dar seguimiento a tus avances con tu tutor o tutora.</p>`,
         recomendaciones: ["Determina cuáles asignaturas requieren atención prioritaria.", "Acude a asesorías disciplinares o mentorías y establece metas alcanzables.", "Revisa tus avances periódicamente y mantén comunicación con tu tutor o tutora."],
-        recursos: ["mentorias", "psicologia", "tutor"],
-        repositorio: true
+        recursos: ["mentorias", "psicologia", "tutor"]
       },
       alto: {
         nombre: "Riesgo académico alto",
@@ -253,8 +278,7 @@
         indicadores: `<div class="indicadores"><h3>¿Qué indicadores corresponden a esta categoría?</h3><p>Tu condición puede corresponder a uno o más de estos indicadores:</p><ol><li>Tener 11 o más exámenes reprobados a lo largo de tu trayectoria académica.</li><li>Tener uno o más segundos cursos hasta este momento.</li><li>Regresar de una suspensión de estudios (baja temporal).</li><li>Tener un porcentaje de rezago mayor al 40 % de tu trayectoria académica.</li></ol><p class="nota">El rezago se considera respecto a tu semestre ideal, según tu periodo de ingreso a la Facultad de Ingeniería.</p></div>`,
         texto: `<p>Esta condición requiere atención prioritaria y una revisión cuidadosa de las alternativas disponibles para dar continuidad a tu trayectoria académica.</p><p>Hay opciones de orientación y apoyo que puedes explorar. Revisa las indicaciones del documento, contacta a tu tutor o tutora y solicita asesoría disciplinar para conocer los pasos que puedes seguir.</p>`,
         recomendaciones: ["Lee cuidadosamente las indicaciones del documento PDF.", "Contacta a tu tutor o tutora y solicita orientación sobre los siguientes pasos.", "Busca asesoría disciplinar para las asignaturas que requieren atención."],
-        recursos: ["mentorias", "psicologia", "tutor"],
-        repositorio: false
+        recursos: ["mentorias", "psicologia", "tutor"]
       }
     };
 
@@ -339,7 +363,7 @@
     }
 
     function analizarCSV(texto) {
-      // CSV simple de dos columnas. Se admite una primera línea de encabezados.
+      // CSV simple de tres columnas. La primera línea debe ser de encabezados.
       const lineas = texto.replace(/^\uFEFF/, "").split(/\r?\n/)
         .map(linea => linea.trim()).filter(Boolean);
       if (lineas.length < 2) throw new Error("El archivo CSV está vacío o no contiene registros.");
@@ -348,8 +372,9 @@
       const encabezados = lineas[0].split(separador).map(x => x.trim().toLowerCase());
       const indiceCuenta = encabezados.indexOf("numero_cuenta");
       const indiceCondicion = encabezados.indexOf("condicion");
-      if (indiceCuenta === -1 || indiceCondicion === -1) {
-        throw new Error("El CSV debe tener los encabezados numero_cuenta y condicion.");
+      const indiceCorreo = encabezados.indexOf("correo_tutor");
+      if (indiceCuenta === -1 || indiceCondicion === -1 || indiceCorreo === -1) {
+        throw new Error("El CSV debe tener los encabezados numero_cuenta, condicion y correo_tutor.");
       }
 
       const registros = new Map();
@@ -357,8 +382,9 @@
         const columnas = lineas[i].split(separador).map(x => x.trim().replace(/^"|"$/g, ""));
         const cuenta = columnas[indiceCuenta] || "";
         const condicion = normalizarCondicion(columnas[indiceCondicion] || "");
+        const correoTutor = (columnas[indiceCorreo] || "").toLowerCase();
         if (/^\d{7}$/.test(cuenta) && condicion && CATEGORIAS[condicion]) {
-          registros.set(cuenta, condicion);
+          registros.set(cuenta, { condicion, correoTutor });
         }
       }
       return registros;
@@ -377,7 +403,12 @@
       contenedor.appendChild(lista);
     }
 
-    function mostrarResultado(condicion) {
+    function enlaceTeams(correo, texto) {
+      return "https://teams.microsoft.com/l/chat/0/0?users=" + encodeURIComponent(correo) +
+        "&message=" + encodeURIComponent(texto);
+    }
+
+    function mostrarResultado(condicion, correoTutor) {
       const datos = CATEGORIAS[condicion];
       document.getElementById("insignia").textContent = datos.insignia;
       document.getElementById("tituloResultado").textContent = datos.nombre;
@@ -385,18 +416,35 @@
       textoResultado.innerHTML = datos.texto + (datos.indicadores || "");
       agregarListaRecomendaciones(textoResultado, datos.recomendaciones);
 
-      const botonPdf = document.getElementById("botonPdf");
-      botonPdf.href = PDF_URLS[condicion];
-      botonPdf.textContent = "Abrir PDF: " + datos.pdf;
-      document.getElementById("textoPdf").textContent =
-        condicion === "alto"
-          ? "Descargue e imprima este documento y entréguelo a la Coordinación de Carrera."
-          : "Abra el documento con las indicaciones correspondientes a su condición académica.";
+      // PDF: solo para riesgo alto.
+      const esAlto = condicion === "alto";
+      document.getElementById("seccionPdf").style.display = esAlto ? "block" : "none";
+      if (esAlto) {
+        const botonPdf = document.getElementById("botonPdf");
+        botonPdf.href = PDF_URLS.alto;
+        botonPdf.textContent = "Abrir PDF: " + datos.pdf;
+        document.getElementById("textoPdf").textContent =
+          "Descargue e imprima este documento y entréguelo a la Coordinación de Carrera.";
+      }
+      document.getElementById("instruccionAlto").style.display = esAlto ? "block" : "none";
 
-      const seccionRepositorio = document.getElementById("seccionRepositorio");
-      seccionRepositorio.style.display = datos.repositorio ? "block" : "none";
-      document.getElementById("instruccionAlto").style.display =
-        condicion === "alto" ? "block" : "none";
+      // Mensaje al tutor o tutora por chat de Teams (todas las condiciones).
+      const correoValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correoTutor || "");
+      const botonTutor = document.getElementById("botonTutor");
+      botonTutor.style.display = correoValido ? "inline-flex" : "none";
+      document.getElementById("sinCorreoTutor").style.display = correoValido ? "none" : "block";
+      if (correoValido) {
+        const mensajeTutor = MENSAJE_TUTOR_BASE + datos.nombre.toLowerCase() + "." +
+          (esAlto ? MENSAJE_TUTOR_ALTO : "") + MENSAJE_TUTOR_CIERRE;
+        botonTutor.href = enlaceTeams(correoTutor, mensajeTutor);
+      }
+
+      // Invitación a mentoría: solo sin riesgo.
+      const esSinRiesgo = condicion === "sin_riesgo";
+      document.getElementById("avisoMentoria").style.display = esSinRiesgo ? "block" : "none";
+      if (esSinRiesgo) {
+        document.getElementById("botonMentoria").href = enlaceTeams(CORREO_COORDINACION, MENSAJE_MENTORIA);
+      }
 
       const recursos = document.getElementById("recursos");
       recursos.replaceChildren();
@@ -445,7 +493,8 @@
           return;
         }
 
-        mostrarResultado(registros.get(cuenta));
+        const registro = registros.get(cuenta);
+        mostrarResultado(registro.condicion, registro.correoTutor);
         iniciarSesion();
       } catch (error) {
         mostrarMensaje(error.message || "Ocurrió un problema al consultar la información. Intente nuevamente.");
