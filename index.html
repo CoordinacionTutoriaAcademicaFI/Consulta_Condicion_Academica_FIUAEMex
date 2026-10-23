@@ -8,6 +8,7 @@
   <style>
     :root {
       --verde: #006b4f;
+      --boton-oscuro: #004b38;
       --verde-oscuro: #004b38;
       --fondo: #f5f7f6;
       --texto: #202a26;
@@ -104,10 +105,16 @@
     .resultado ul { padding-left: 22px; }
     .enlaces { display: grid; grid-template-columns: 1fr; gap: 8px; }
     .enlaces a {
-      color: var(--verde-oscuro);
+      color: #ffffff;
+      background: #005640;
       font-weight: 700;
       overflow-wrap: anywhere;
     }
+    .enlaces a:hover { background: #003d2e; }
+    #botonSalir { background: #5b2020; }
+    #botonSalir:hover { background: #3f1414; }
+    .indicadores { background: #f5f8f6; border-left: 4px solid var(--verde); padding: 12px 15px; border-radius: 6px; margin: 16px 0; }
+    .indicadores h3 { margin-top: 0; }
     .mensaje {
       display: none;
       border-radius: 9px;
@@ -133,19 +140,20 @@
 
   <main>
     <section class="tarjeta" aria-labelledby="titulo-consulta">
-      <h2 id="titulo-consulta">Consulte su condición académica</h2>
-      <p>Ingrese su número de cuenta de siete dígitos para consultar las indicaciones correspondientes.</p>
+      <h2 id="titulo-consulta">Consulta tu condición académica</h2>
+      <p>Ingresa tu número de cuenta de siete dígitos para consultar las indicaciones correspondientes.</p>
       <form id="formulario">
         <label for="numeroCuenta">Número de cuenta</label>
         <input id="numeroCuenta" name="numeroCuenta" type="text"
           inputmode="numeric" autocomplete="off" maxlength="7"
           pattern="[0-9]{7}" placeholder="Ejemplo: 1234567"
           aria-describedby="ayuda-cuenta" required>
-        <p id="ayuda-cuenta" class="ayuda">Escriba únicamente los siete dígitos de su número de cuenta.</p>
+        <p id="ayuda-cuenta" class="ayuda">Escribe únicamente los siete dígitos de tu número de cuenta.</p>
         <button id="botonConsultar" type="submit">Consultar condición</button>
       </form>
+      <button id="botonSalir" type="button" style="display:none;">Salir</button>
       <div id="mensaje" class="mensaje" role="status" aria-live="polite"></div>
-      <p class="nota">Si no puede consultar su información, comuníquese con la Coordinación de Tutoría de la Facultad de Ingeniería.</p>
+      <p class="nota">Si no puedes consultar tu información, comunícate con la Coordinación de Tutoría de la Facultad de Ingeniería.</p>
     </section>
 
     <section id="resultado" class="tarjeta resultado" aria-live="polite">
@@ -205,14 +213,15 @@
         nombre: "Sin riesgo académico",
         insignia: "Trayectoria académica favorable",
         pdf: "Indicaciones para estudiantes sin riesgo académico",
+        indicadores: "",
         texto: `
-          <p>Su condición académica corresponde a una trayectoria favorable. Este resultado reconoce el esfuerzo, la dedicación y el compromiso que contribuyen a su avance académico.</p>
-          <p>Le invitamos a mantener estos hábitos, continuar en contacto con su tutor o tutora y aprovechar las oportunidades de formación y acompañamiento disponibles.</p>
+          <p>Tu condición académica corresponde a una trayectoria favorable. Este resultado reconoce el esfuerzo, la dedicación y el compromiso que contribuyen a tu avance académico.</p>
+          <p>Te invitamos a mantener estos hábitos, continuar en contacto con tu tutor o tutora y aprovechar las oportunidades de formación y acompañamiento disponibles.</p>
         `,
         recomendaciones: [
-          "Mantenga sus hábitos de estudio y organización del tiempo.",
-          "Continúe dando seguimiento a su trayectoria académica.",
-          "Aproveche las actividades de mentoría, asesoría y acompañamiento que puedan fortalecer su aprendizaje."
+          "Mantén tus hábitos de estudio y organización del tiempo.",
+          "Continúa dando seguimiento a tu trayectoria académica.",
+          "Aprovecha las actividades de mentoría, asesoría y acompañamiento que puedan fortalecer tu aprendizaje."
         ],
         recursos: ["mentorias", "psicologia", "tutor"],
         repositorio: true
@@ -221,15 +230,9 @@
         nombre: "Riesgo académico bajo",
         insignia: "Atención preventiva",
         pdf: "Indicaciones para estudiantes con riesgo académico bajo",
-        texto: `
-          <p>Esta condición señala la conveniencia de atender oportunamente algunos indicadores académicos. La detección temprana permite organizar acciones preventivas y evitar que las dificultades aumenten.</p>
-          <p>Se recomienda revisar las asignaturas que requieren mayor atención, mantener comunicación con su tutor o tutora y solicitar apoyo cuando lo necesite.</p>
-        `,
-        recomendaciones: [
-          "Identifique las asignaturas y actividades que requieren atención prioritaria.",
-          "Organice un plan de estudio realista y dé seguimiento a sus avances.",
-          "Solicite asesoría disciplinar o mentoría antes de que las dificultades se acumulen."
-        ],
+        indicadores: `<div class="indicadores"><h3>¿Qué indicadores corresponden a esta categoría?</h3><p>Tu condición puede corresponder a cualquiera de estos indicadores:</p><ol><li>Tener de 1 a 5 exámenes reprobados.</li><li>Tener de 1 a 2 periodos de ausencia.</li><li>Tener un rezago por tiempo de permanencia mayor al 10 % y menor o igual al 20 %.</li></ol><p class="nota">El rezago se considera respecto a tu semestre ideal, según tu periodo de ingreso a la Facultad de Ingeniería.</p></div>`,
+        texto: `<p>Esta condición señala que conviene atender oportunamente algunos aspectos de tu trayectoria. Identificarlos a tiempo te permite organizar acciones preventivas y evitar que las dificultades aumenten.</p><p>Puedes avanzar paso a paso: identifica qué necesitas reforzar y busca acompañamiento cuando lo requieras.</p>`,
+        recomendaciones: ["Identifica las asignaturas y actividades que requieren mayor atención.", "Organiza un plan de estudio realista y revisa tus avances.", "Solicita asesoría disciplinar o mentoría antes de que las dificultades se acumulen."],
         recursos: ["mentorias", "psicologia", "tutor"],
         repositorio: true
       },
@@ -237,15 +240,9 @@
         nombre: "Riesgo académico medio",
         insignia: "Atención académica oportuna",
         pdf: "Indicaciones para estudiantes con riesgo académico medio",
-        texto: `
-          <p>Esta condición indica que es importante atender las dificultades académicas identificadas y fortalecer las estrategias para avanzar en su trayectoria escolar.</p>
-          <p>Se recomienda establecer prioridades, buscar apoyo en las asignaturas que representan mayor dificultad y dar seguimiento a los acuerdos con su tutor o tutora. La atención oportuna puede contribuir a evitar que la situación avance a un nivel de riesgo mayor.</p>
-        `,
-        recomendaciones: [
-          "Determine cuáles asignaturas requieren atención inmediata.",
-          "Acuda a asesorías disciplinares o mentorías y establezca metas de trabajo.",
-          "Revise periódicamente sus avances y mantenga comunicación con su tutor o tutora."
-        ],
+        indicadores: `<div class="indicadores"><h3>¿Qué indicadores corresponden a esta categoría?</h3><p>Tu condición puede corresponder a cualquiera de estos indicadores:</p><ol><li>Tener de 6 a 10 exámenes reprobados.</li><li>Tener de 3 a 4 periodos de ausencia.</li><li>Tener un rezago por tiempo de permanencia mayor al 20 % y menor o igual al 40 %.</li></ol><p class="nota">El rezago se considera respecto a tu semestre ideal, según tu periodo de ingreso a la Facultad de Ingeniería.</p></div>`,
+        texto: `<p>Esta condición indica que es importante atender las dificultades identificadas y fortalecer las estrategias que te permitan avanzar en tu trayectoria escolar.</p><p>No tienes que resolverlo todo de una vez. Puedes establecer prioridades, buscar apoyo en las asignaturas que te resultan más difíciles y dar seguimiento a tus avances con tu tutor o tutora.</p>`,
+        recomendaciones: ["Determina cuáles asignaturas requieren atención prioritaria.", "Acude a asesorías disciplinares o mentorías y establece metas alcanzables.", "Revisa tus avances periódicamente y mantén comunicación con tu tutor o tutora."],
         recursos: ["mentorias", "psicologia", "tutor"],
         repositorio: true
       },
@@ -253,15 +250,9 @@
         nombre: "Riesgo académico alto",
         insignia: "Requiere atención prioritaria",
         pdf: "Indicaciones para estudiantes con riesgo académico alto",
-        texto: `
-          <p>Esta condición requiere atención prioritaria y una revisión cuidadosa de las alternativas disponibles para dar continuidad a su trayectoria académica.</p>
-          <p>Le invitamos a revisar las indicaciones del documento, acercarse a su tutor o tutora y solicitar asesoría disciplinar. Si necesita apoyo emocional o personal, también puede consultar los servicios de orientación disponibles.</p>
-        `,
-        recomendaciones: [
-          "Lea cuidadosamente las indicaciones incluidas en el documento PDF.",
-          "Contacte a su tutor o tutora y solicite orientación sobre los pasos siguientes.",
-          "Busque asesoría disciplinar para las asignaturas que requieren atención."
-        ],
+        indicadores: `<div class="indicadores"><h3>¿Qué indicadores corresponden a esta categoría?</h3><p>Tu condición puede corresponder a uno o más de estos indicadores:</p><ol><li>Tener 11 o más exámenes reprobados a lo largo de tu trayectoria académica.</li><li>Tener uno o más segundos cursos hasta este momento.</li><li>Regresar de una suspensión de estudios (baja temporal).</li><li>Tener un porcentaje de rezago mayor al 40 % de tu trayectoria académica.</li></ol><p class="nota">El rezago se considera respecto a tu semestre ideal, según tu periodo de ingreso a la Facultad de Ingeniería.</p></div>`,
+        texto: `<p>Esta condición requiere atención prioritaria y una revisión cuidadosa de las alternativas disponibles para dar continuidad a tu trayectoria académica.</p><p>Hay opciones de orientación y apoyo que puedes explorar. Revisa las indicaciones del documento, contacta a tu tutor o tutora y solicita asesoría disciplinar para conocer los pasos que puedes seguir.</p>`,
+        recomendaciones: ["Lee cuidadosamente las indicaciones del documento PDF.", "Contacta a tu tutor o tutora y solicita orientación sobre los siguientes pasos.", "Busca asesoría disciplinar para las asignaturas que requieren atención."],
         recursos: ["mentorias", "psicologia", "tutor"],
         repositorio: false
       }
@@ -287,6 +278,31 @@
     const botonConsultar = document.getElementById("botonConsultar");
     const mensaje = document.getElementById("mensaje");
     const resultado = document.getElementById("resultado");
+    const botonSalir = document.getElementById("botonSalir");
+    const DURACION_SESION = 20 * 60 * 1000;
+    let temporizadorSesion = null;
+
+    function cerrarSesion(texto = "Tu sesión terminó. Ingresa nuevamente tu número de cuenta para consultar tu condición académica.") {
+      clearTimeout(temporizadorSesion);
+      temporizadorSesion = null;
+      resultado.style.display = "none";
+      botonSalir.style.display = "none";
+      campoCuenta.value = "";
+      ocultarMensaje();
+      mostrarMensaje(texto, "info");
+      campoCuenta.focus();
+      document.getElementById("titulo-consulta").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    function iniciarSesion() {
+      clearTimeout(temporizadorSesion);
+      botonSalir.style.display = "block";
+      temporizadorSesion = setTimeout(() => cerrarSesion(), DURACION_SESION);
+    }
+
+    botonSalir.addEventListener("click", () => {
+      cerrarSesion("Has salido de la consulta. Para volver a consultar, ingresa nuevamente tu número de cuenta.");
+    });
 
     campoCuenta.addEventListener("input", () => {
       campoCuenta.value = campoCuenta.value.replace(/\D/g, "").slice(0, 7);
@@ -366,7 +382,7 @@
       document.getElementById("insignia").textContent = datos.insignia;
       document.getElementById("tituloResultado").textContent = datos.nombre;
       const textoResultado = document.getElementById("textoResultado");
-      textoResultado.innerHTML = datos.texto;
+      textoResultado.innerHTML = datos.texto + (datos.indicadores || "");
       agregarListaRecomendaciones(textoResultado, datos.recomendaciones);
 
       const botonPdf = document.getElementById("botonPdf");
@@ -430,6 +446,7 @@
         }
 
         mostrarResultado(registros.get(cuenta));
+        iniciarSesion();
       } catch (error) {
         mostrarMensaje(error.message || "Ocurrió un problema al consultar la información. Intente nuevamente.");
       } finally {
